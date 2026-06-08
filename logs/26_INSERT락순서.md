@@ -2,6 +2,8 @@
 
 **학습 범위**: INSERT 시 락이 걸리는 순서 — insert intention lock → X record lock → 유니크 충돌 시 S락 → 동시 중복 INSERT [[데드락]] (MySQL InnoDB 기준)
 
+분류: [[락-동시성]]
+
 ## 1. 막힌 것의 종류
 
 - [x] 개념 자체를 모르겠다 (정확히는: 조각은 있는데 **순서/관계가 엉켜 있었다**)

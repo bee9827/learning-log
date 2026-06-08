@@ -2,6 +2,8 @@
 
 **학습 범위**: Session 전체 흐름 (JSESSIONID, Tomcat 관리, getSession 옵션)
 
+분류: [[세션-인증]]
+
 ## 1. 막힌 것의 종류
 
 - [x] 개념 자체를 모르겠다

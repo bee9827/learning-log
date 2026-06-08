@@ -2,6 +2,8 @@
 
 **학습 범위**: InnoDB [[갭락]](Gap Lock), Insert Intention Lock, Next-Key Lock, S락
 
+분류: [[락-동시성]]
+
 ## 1. 막힌 것의 종류
 
 - [x] 개념 자체를 모르겠다

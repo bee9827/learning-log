@@ -3,6 +3,8 @@
 **시간**: 05/20 (약 __ 분)
 **학습 범위**: Filter vs Interceptor, OncePerRequestFilter
 
+분류: [[Spring웹-요청처리]]
+
 ## 1. 막힌 것의 종류
 
 - [ ] 개념 자체를 모르겠다
