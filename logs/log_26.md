@@ -1,6 +1,6 @@
 # 학습 로그 #26
 
-**학습 범위**: INSERT 시 락이 걸리는 순서 — insert intention lock → X record lock → 유니크 충돌 시 S락 → 동시 중복 INSERT 데드락 (MySQL InnoDB 기준)
+**학습 범위**: INSERT 시 락이 걸리는 순서 — insert intention lock → X record lock → 유니크 충돌 시 S락 → 동시 중복 INSERT [[데드락]] (MySQL InnoDB 기준)
 
 ## 1. 막힌 것의 종류
 
@@ -88,7 +88,7 @@ T1 롤백 → X 풀림
            범위 UPDATE/DELETE)
    → 종류: 흐름 파악
    → 연결: next-cycle "SELECT ... FOR SHARE 필요 시나리오"(log_17),
-           "B-Tree에서 갭락 물리 구현"(log_17)
+           "B-Tree에서 [[갭락]] 물리 구현"(log_17)
 ```
 
 연결 메모: 오늘 배운 "유니크 충돌 S락 → 중복 INSERT 데드락"은 next-cycle의 **"동시성 race(finding #6) + DB unique index 도입 여부"**(log_25) 판단의 직접 재료다. unique index를 backstop으로 두면 이 데드락 패턴이 어떻게 바뀌는지가 그 키워드의 실전 버전. → 아래 7번에서 실전 적용으로 해결.
