@@ -2,7 +2,7 @@
 
 **학습 범위**: 트랜잭션 경계 롤백을 테스트로 증명하기 — `@MockitoSpyBean`으로 승격 중간 실패를 주입하고, Service의 `@Transactional`이 원자적으로 롤백되는지 검증. (Mock vs Spy / `@SpringBootTest` vs `@JdbcTest` / `BDDMockito` 스타일)
 
-분류: [[트랜잭션]]
+분류: [[트랜잭션]]  #트랜잭션
 
 ## 1. 막힌 것의 종류
 
