@@ -28,9 +28,11 @@
 
 | 로그 범위 | 프로젝트 |
 |---|---|
-| log_01 ~ 13 | spring-roomescape-member |
-| log_14 ~ 22 | spring-roomescape-auth |
-| log_23 ~ 28 | spring-roomescape-waiting |
+| 01 ~ 13 | spring-roomescape-member |
+| 14 ~ 22 | spring-roomescape-auth |
+| 23 ~ 28 | spring-roomescape-waiting |
+
+> 파일명: `NN_핵심키워드.md` (번호 앞 → 시간순 정렬·상호참조 안정, 키워드 → 그래프 가독성)
 
 ## 인덱스
 
