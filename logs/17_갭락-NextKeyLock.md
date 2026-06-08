@@ -1,8 +1,8 @@
 # 학습 로그 #17
 
-**학습 범위**: InnoDB [[갭락]](Gap Lock), Insert Intention Lock, Next-Key Lock, S락
+**학습 범위**: InnoDB 갭락(Gap Lock), Insert Intention Lock, Next-Key Lock, S락
 
-분류: [[락-동시성]]  #락-동시성
+분류: 락-동시성
 
 ## 1. 막힌 것의 종류
 

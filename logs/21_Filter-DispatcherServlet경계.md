@@ -2,7 +2,7 @@
 
 **학습 범위**: PR 리뷰 반영, Filter와 DispatcherServlet 경계, 역직렬화 시점
 
-분류: [[Spring웹-요청처리]]  #Spring웹-요청처리
+분류: Spring웹-요청처리
 
 ## 1. 막힌 것의 종류
 
