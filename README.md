@@ -53,3 +53,9 @@
 | 26 | INSERT 락 순서 — intention/record/유니크 S락/데드락 |
 | 27 | 트랜잭션 경계 롤백 테스트 — MockitoSpyBean, Mock vs Spy |
 | 28 | @Scheduled 워커 + 아웃박스 패턴, 최종 일관성·멱등성 |
+| 29 | 갭락 재방문 — MVCC와의 관계, SELECT FOR UPDATE 스냅샷 우회 |
+| 30 | ACID 지향점 메타 복습 — DB·트랜잭션 로그를 unique로 한 바퀴 꿰기 |
+| 31 | Saga 패턴 — 보상 트랜잭션, Outbox와의 관계, rollback vs compensation |
+| 32 | 인증 & 세션 지향점 — stateless 위에 신원 얹기, 세션 vs JWT, 확장성↔무효화 |
+| 33 | 복잡한 모델링 — 책임의 위치(정보 전문가), 묶기↔나누기, 행 간 불변식→트랜잭션 |
+| 34 | 테스트 — 격리↔실제성 저울, 테스트가 트랜잭션을 쥐면 경계가 가려진다 |
