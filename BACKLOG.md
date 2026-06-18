@@ -5,7 +5,8 @@
 ## 🔥 hot — arc '결제 능동적 실패/보상 + 최종 일관성' (열림, log_46~). reconciliation 완료, 나머지 진행.
 
 - [x] **불명확(NEEDS_CHECK) 자동 reconciliation** — ✅ 완료 log_46. 토스 `findStatus` 조회로 DONE→확정 / 아니면→실패 수렴, `@Scheduled` 워커(아웃박스 패턴), 멱등은 낙관 상태가드. 257 그린.
-- [ ] **reconcile 가드 vs 락 — 진짜 동시(worker+recheck) 직렬화되나** — 예고 log_46(§4) / 종류: 코드 적용 (#28 "새치기 가드 직렬화 증명" 재방문, Testcontainers MySQL 필요할 수도)
+- [x] **상태 CAS 직렬화 — 가드는 동시성에 못 닫힌다** ✅ 완료 log_47. status를 version 삼은 낙관 CAS(`UPDATE WHERE status=expected`, 0행=짐), 네 수렴지점(confirm/recheck/reconcile/abandon) 게이트. 258 그린. ⚠️ 이 칸은 *동시성/직렬화* 갈래(#28 가족)라 "보상" arc와 결이 다름 → arc 재정리 보류 중.
+  - [ ] **진짜 멀티스레드 직렬화 증명** — 예고 log_47(§5)·#28 / 종류: 코드 적용 (H2 한계 → Testcontainers MySQL + 동시 스레드)
 - [ ] **재시도 정책 — 워커 영구 재시도(토스 404 등) → 몇 번·백오프·언제 포기** — 예고 log_46(§1)·#36 / 종류: 흐름 파악→코드 적용 (#28 아웃박스 재시도와 한 묶음)
 - [ ] **트랜잭션 밖 외부호출 분리 + Saga 보상** — 예고 log_31·37·46 / 종류: 코드 적용 (confirm/reconcile이 @Transactional 안 토스 호출 → 승인 후 후속 실패 시 돈↔상태 불일치[리뷰 high]. 환불 보상 필요)
 
