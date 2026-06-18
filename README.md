@@ -19,7 +19,7 @@
 |---|---|
 | 01 ~ 13 | spring-roomescape-member |
 | 14 ~ 22 | spring-roomescape-auth |
-| 23 ~ 43 | spring-roomescape-waiting |
+| 23 ~ 45 | spring-roomescape-waiting |
 
 > 파일명: `NN_핵심키워드.md` (번호 앞 → 시간순 정렬·상호참조 안정, 키워드 → 그래프 가독성)
 
@@ -70,3 +70,5 @@
 | 41 | 아키텍처 가드(ArchUnit) — 왜 자동 강제가 필요한가 |
 | 42 | 사이클 끊기는 도구가 다르다 + 책임을 제자리에(동기→중립 제3자) |
 | 43 | 예약↔결제 API 분리 + default-deny 인증 + 중복 주문 3중 방어(멱등 재방문) |
+| 44 | 타임아웃 방어 — connect/read 두 단계, read=모름, 멱등 두 겹(재방문) |
+| 45 | 토스 step2 완성 — 멱등키 전용컬럼·read 서비스 분리·책임 분리(코드 적용) |

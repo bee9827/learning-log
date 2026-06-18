@@ -2,7 +2,15 @@
 
 **운영 규칙**: 다음 사이클은 🔥 **hot**에서만 고른다. hot = *지금 타는 실의 **연관된 다음 칸들 = 하나의 관심사 arc***로, **1~2 사이클에 그 arc를 닫을 수 있게** 묶는다 — 흩어진 픽 금지(수렴하는 묶음만). arc가 닫히면 🧊 **cold**에서 *다음 arc를 통째로* 끌어올린다. 진행 중 새로 떠오른 씨앗은 *로그 본문에만* 적는다(BACKLOG 줄로 안 올림). cold는 **arc·클러스터별 보관함** — 평소엔 안 보고, 실을 갈아탈 때나 가끔 청소할 때만 들춘다. 백로그는 "갚을 빚"이 아니라 "메뉴".
 
-## 🔥 hot — arc 'PENDING 미완료(abandonment) 정리' **닫힘** (reaper + 무료승격 차단/정리 완료, 2026-06-17). 다음 사이클은 🧊 cold에서 새 arc를 통째로 올릴 것.
+## 🔥 hot — arc '토스 step2: 타임아웃 방어 + 멱등 재시도' **닫힘** (req1~4 + 진입점 + 리팩토링 완료, log_44·45, 2026-06-18). 다음 arc는 🧊 cold '결제 — 능동적 실패/보상'에서.
+
+- [x] **req1 — RestClient connect/read 타임아웃** — ✅ 적용 완료 log_44. 타임아웃은 저수준 factory에. **factory=apache(HttpComponents)** — simple(HttpURLConnection)이 401 응답 바디를 인증처리 중 삼켜 토스 에러매핑 테스트 2개(UNAUTHORIZED_KEY/INVALID_API_KEY)를 깬 걸 *코딩 중 발견*해 전환(httpclient5 의존성 +). `ClientHttpRequestFactoryBuilder.httpComponents()` + `ClientHttpRequestFactorySettings`, 값은 `TossProperties`(Duration) yml 2s/5s. 전체 246 그린.
+- [x] **req2 — 타임아웃 예외 처리** ✅ 완료 605c7938 (log_44 §7). 전송예외→도메인예외(root-cause 분류·안전기본값 "모름"), read→`NEEDS_CHECK`(catch→commit, reaper 제외), connect→502. MockWebServer로 미션표 반증·root-cause 전환 확인. 249 그린. **통찰**: 멱등키=능동적 재시도 보호 / NEEDS_CHECK=수동적 reaper 보호 → 다른 길목이라 안 수렴.
+- [x] **req3 — Idempotency-Key 코드** ✅ 완료 6692383f (전용 `idempotency_key` 컬럼=SRP[orderId=정체성 / 멱등키=요청멱등성]; `OrderService.create` 1회 발급; 헤더 전송 테스트). log_45 §1.
+- [x] **req4 — 주문/결제 내역 페이지** ✅ 완료 c4e30188 (읽기전용 `PaymentHistoryService` 분리·클라 머지) + **진입점 메움**(PENDING→결제하기 / NEEDS_CHECK→결제확인=서버 재confirm B, b873eabe) + **리팩토링**(PaymentService→PaymentAbandonmentService[리네임 d7d519af], TossGateway 번역 추출, 2a5a54df) + **DTO/패키지 정리**(web/dto·payment.service·exception·toss.dto, 1141f02d·d7d519af). log_45.
+- [ ] **(파킹) jdk 팩토리가 응답 바디 지연을 read timeout으로 못 잡는 이유** — 예고 log_44 / 종류: 흐름 파악
+
+## 🗂 직전 arc 'PENDING 미완료(abandonment) 정리' **닫힘** (reaper + 무료승격 차단/정리 완료, 2026-06-17)
 
 > log_37로 PENDING이 들어가자, *결제 없이 떠 있는 반쪽 상태*가 슬롯을 영구 점유하고 대기까지 왜곡(리뷰 high). "PENDING을 제대로 청소·취급"이 한 arc — **돈은 안 움직인** 케이스라 환불/보상(arc B)과는 별개로 묶는다.
 
@@ -17,6 +25,7 @@
 ## 🧊 cold — 보관함 (클러스터별 / 평소엔 안 봄)
 
 ### 결제 — arc「능동적 실패 + 보상/재시도」 (돈이 움직인 뒤 실패 → 환불/보상; abandonment와 별개)
+- [ ] **불명확(NEEDS_CHECK) 주문 자동 reconciliation** — 예고 log_44 / 종류: 흐름 파악→코드 적용 (사용자가 안 돌아오면 NEEDS_CHECK 림보 → 백그라운드 잡이 토스 결제상태 조회로 확정/실패. step2는 사용자-주도로 갈음)
 - [ ] **트랜잭션 밖 외부호출 분리 + Saga 보상** — 예고: log_31·37 / 종류: 코드 적용 (confirm()이 @Transactional 안에서 토스 호출 → 승인 후 후속단계 실패 시 돈↔상태 불일치[리뷰 high]. 환불 보상 필요)
 - [ ] **재시도 정책 — 몇 번·백오프·언제 포기** — 예고: log_36 / 종류: 코드 적용 (log_28 아웃박스 재시도. 위 보상과 한 묶음)
 
