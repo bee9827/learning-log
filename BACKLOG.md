@@ -2,13 +2,12 @@
 
 **운영 규칙**: 다음 사이클은 🔥 **hot**에서만 고른다. hot = *지금 타는 실의 **연관된 다음 칸들 = 하나의 관심사 arc***로, **1~2 사이클에 그 arc를 닫을 수 있게** 묶는다 — 흩어진 픽 금지(수렴하는 묶음만). arc가 닫히면 🧊 **cold**에서 *다음 arc를 통째로* 끌어올린다. 진행 중 새로 떠오른 씨앗은 *로그 본문에만* 적는다(BACKLOG 줄로 안 올림). cold는 **arc·클러스터별 보관함** — 평소엔 안 보고, 실을 갈아탈 때나 가끔 청소할 때만 들춘다. 백로그는 "갚을 빚"이 아니라 "메뉴".
 
-## 🔥 hot — arc '결제 능동적 실패/보상 + 최종 일관성' (열림, log_46~). reconciliation 완료, 나머지 진행.
+## 🔥 hot — arc '결제 능동적 실패/보상' (열림, log_46~). reconciliation·CAS 완료. 동시성 갈래(CAS 후속)는 cold로 분리, **보상 갈래만** 남김(log_47 "바꿀 것" 적용).
 
 - [x] **불명확(NEEDS_CHECK) 자동 reconciliation** — ✅ 완료 log_46. 토스 `findStatus` 조회로 DONE→확정 / 아니면→실패 수렴, `@Scheduled` 워커(아웃박스 패턴), 멱등은 낙관 상태가드. 257 그린.
-- [x] **상태 CAS 직렬화 — 가드는 동시성에 못 닫힌다** ✅ 완료 log_47. status를 version 삼은 낙관 CAS(`UPDATE WHERE status=expected`, 0행=짐), 네 수렴지점(confirm/recheck/reconcile/abandon) 게이트. 258 그린. ⚠️ 이 칸은 *동시성/직렬화* 갈래(#28 가족)라 "보상" arc와 결이 다름 → arc 재정리 보류 중.
-  - [ ] **진짜 멀티스레드 직렬화 증명** — 예고 log_47(§5)·#28 / 종류: 코드 적용 (H2 한계 → Testcontainers MySQL + 동시 스레드)
-- [ ] **재시도 정책 — 워커 영구 재시도(토스 404 등) → 몇 번·백오프·언제 포기** — 예고 log_46(§1)·#36 / 종류: 흐름 파악→코드 적용 (#28 아웃박스 재시도와 한 묶음)
-- [ ] **트랜잭션 밖 외부호출 분리 + Saga 보상** — 예고 log_31·37·46 / 종류: 코드 적용 (confirm/reconcile이 @Transactional 안 토스 호출 → 승인 후 후속 실패 시 돈↔상태 불일치[리뷰 high]. 환불 보상 필요)
+- [x] **상태 CAS 직렬화 — 가드는 동시성에 못 닫힌다** ✅ 완료 log_47. status를 version 삼은 낙관 CAS(`UPDATE WHERE status=expected`, 0행=짐), 네 수렴지점(confirm/recheck/reconcile/abandon) 게이트. 258 그린. (이 칸은 *동시성/직렬화* 갈래[#28 가족]였고, 후속 '멀티스레드 증명'은 보상 arc와 결이 달라 cold로 분리 — log_47 "바꿀 것" 적용.)
+- [ ] **재시도 정책 — 워커 재시도 횟수·백오프·언제 포기→보상** — 예고 log_46(§1)·48(§5)·#36 / 종류: 흐름 파악→코드 적용 (외부 '모름'은 반환타입으로 못 갈려 바운드 필요. #28 아웃박스 재시도와 한 묶음 — **보상으로 넘어가는 경첩**)
+- [ ] **트랜잭션 밖 외부호출 분리 + Saga 보상 (환불 가지)** — 예고 log_31·37·46, **개념·설계 완료 log_48**(구현 대기) / 종류: 코드 적용 (confirm/reconcile이 @Transactional 안 토스 호출 → 승인 후 후속 실패 시 돈↔상태 불일치[리뷰 high]. 설계: 예외 catch→NEEDS_CHECK 커밋[증거 생존] → reconcile에 backward[환불] 가지 → 환불도 외부라 아웃박스+멱등키. 영구/일시 구분은 반환타입, 외부 '모름'은 재시도 바운드)
 
 ## 🗂 직전 arc '토스 step2: 타임아웃 방어 + 멱등 재시도' **닫힘** (req1~4 + 진입점 + 리팩토링, log_44·45, 2026-06-18)
 
@@ -53,7 +52,7 @@
 
 ### 트랜잭션 / 모델링
 - [ ] **@Transactional propagation — 승격을 REQUIRES_NEW로 떼면 무엇이 달라지나** — 예고: log_27 / 종류: 코드 적용 (join vs 새 트랜잭션 롤백 범위)
-- [ ] **새치기 가드가 동시성에서 정말 닫혔나 — 직렬화 증명** — 예고: log_28 / 종류: 코드 적용 (H2는 gap lock 미지원 → Testcontainers MySQL)
+- [ ] **동시성에서 정말 직렬화되나 — 진짜 멀티스레드 증명** — 예고: log_28·47(§5) / 종류: 코드 적용 (새치기 가드·상태 CAS 둘 다 H2+단일 트랜잭션으론 *메커니즘만* 증명. 진짜 경합은 Testcontainers MySQL + 동시 스레드 필요. — 동시성 갈래, 보상 arc와 분리)
 - [ ] **DTO 변환을 Slot 단위로** — 예고: log_24 / 종류: 코드 적용 (getter 위임 1단계 → DTO가 slot 직접 수신)
 - [ ] **composition vs association vs aggregation** — 예고: log_23·25 / 맥락: Waitings가 List<Waiting>을 가지는 구조의 분류
 - [ ] **"DB에 숨은 비즈니스 로직" 찾는 안목** — 예고: log_25 / 맥락: 다른 DAO/Service에서 같은 냄새 스캔
