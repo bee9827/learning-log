@@ -2,12 +2,17 @@
 
 **운영 규칙**: 다음 사이클은 🔥 **hot**에서만 고른다. hot = *지금 타는 실의 **연관된 다음 칸들 = 하나의 관심사 arc***로, **1~2 사이클에 그 arc를 닫을 수 있게** 묶는다 — 흩어진 픽 금지(수렴하는 묶음만). arc가 닫히면 🧊 **cold**에서 *다음 arc를 통째로* 끌어올린다. 진행 중 새로 떠오른 씨앗은 *로그 본문에만* 적는다(BACKLOG 줄로 안 올림). cold는 **arc·클러스터별 보관함** — 평소엔 안 보고, 실을 갈아탈 때나 가끔 청소할 때만 들춘다. 백로그는 "갚을 빚"이 아니라 "메뉴".
 
-## 🔥 hot — 현재 arc: PENDING 미완료(abandonment) 정리 (1~2 사이클에 닫기)
+## 🔥 hot — arc 'PENDING 미완료(abandonment) 정리' **닫힘** (reaper + 무료승격 차단/정리 완료, 2026-06-17). 다음 사이클은 🧊 cold에서 새 arc를 통째로 올릴 것.
 
 > log_37로 PENDING이 들어가자, *결제 없이 떠 있는 반쪽 상태*가 슬롯을 영구 점유하고 대기까지 왜곡(리뷰 high). "PENDING을 제대로 청소·취급"이 한 arc — **돈은 안 움직인** 케이스라 환불/보상(arc B)과는 별개로 묶는다.
 
-- [ ] **PENDING 만료 reaper** — 예고: log_37 / 종류: 코드 적용·설계 (미결제 PENDING이 슬롯 영구 점유[리뷰 high]. created_at TTL + @Scheduled, log_28 아웃박스 패턴 재사용)
-- [ ] **대기 정합성 — PENDING 위 대기 금지 / 무료 승격 차단** — 예고: log_37 / 종류: 코드 적용 (findBySlotKeyForUpdate가 status 무시 → 미결제 PENDING 위 대기·무료 승격[리뷰 high]. PENDING을 "확정"으로 오인하는 같은 뿌리)
+- [x] **무료 승격 차단 + 승격 PENDING 정리** — ✅ 구현 완료 2026-06-17 (커밋 0ec4496a·057298e1). 결과: promote()→PENDING / abandon이 enqueuePromotion(공통 코어 cancelPendingReservation) / reaper가 Order 없는 PENDING도 created_at으로 정리(reservations.created_at 추가) / 승격 생성은 ReservationCreator.createFromPromotion으로 위임(권한·새치기 검증 분리). cancel/auth 전면 디커플링은 이 버그엔 불필요로 판단해 생략. (설계 메모는 아래 보존)
+  > 정정: "PENDING 위 대기 *금지*"는 오답 — 대기는 받아주는 게 공정. 진짜 결함은 ① 승격이 **무료 BOOKED**(`promote()`→`createByAdmin`) ② 승격 PENDING이 결제 안 되면 reaper 사각지대(Order만 스캔) ③ 정리돼도 다음 대기자 승격 안 됨(큐 멈춤).
+  > **설계 4조각:**
+  > 1. `Waiting.promote()` → BOOKED 말고 **PENDING 생성**(승격자도 결제해야 확정). 승격 경로만, `createByAdmin`(어드민 직접예약=BOOKED)은 유지.
+  > 2. reaper가 **Order 없는 PENDING도** `created_at`으로 줍기(현재 `findExpiredPendingOrderIds`는 Order만 스캔=사각지대). TTL 30분(=결제팝업)과 승격 유예는 *별개 다이얼*.
+  > 3. 슬롯 비우는 두 경로(`ReservationService.cancel` / `PaymentService.abandon`)를 **auth 없는 순수 코어로 통합** → 거기서 `enqueuePromotion` 한 번 → 양쪽 승격 보장. (현재 `abandon`에 `enqueuePromotion` 누락 = 큐 멈춤 버그)
+  > 4. cancel/auth **디커플링**: 코어는 순수 동작, auth는 **명시적 단일 관문**(각 호출자에 흩지 말 것 — log_41 가드 교훈과 동형: "매 경로마다 기억해서 호출"은 취약).
 
 ## 🧊 cold — 보관함 (클러스터별 / 평소엔 안 봄)
 
@@ -20,7 +25,9 @@
 - [ ] **at-least-once vs exactly-once — 멱등성이 왜 "exactly-once 효과"를 만드나** — 예고: log_36 / 종류: 흐름 파악 (이론적 바닥)
 
 ### 구조 / 테스트
-- [ ] **ArchUnit으로 ACL 경계 강제** — 예고: log_38 / 종류: 코드 적용 (토스 타입이 payment.toss 밖으로 못 나가게 테스트로 고정. "선이 지켜지나"를 자동 검증)
+- [ ] **reservation↔waiting 사이클 끊기** — 예고: log_40·42 / 종류: 코드 적용 (마지막 남은 사이클. payment↔reservation은 log_42에서 끊음). 단일 edge `ReservationCreator→WaitingDao`(새치기 방지 읽기)를 DIP(reservation에 포트 정의 → waiting이 구현)로 역전.
+- [ ] **ArchUnit 가드 코드 적용** — 예고: log_38·41 / 종류: 코드 적용 (*왜·정체*는 log_41에서 닫음). 규칙 2종: ①패키지 사이클 금지 ②ACL 경계(토스 타입이 payment.toss 밖으로 못 나감). 이제 사이클이 reservation↔waiting 1건뿐이라 "신규 사이클 금지" 박기 좋은 시점(그 1건은 베이스라인 예외 후 끊기).
+- [ ] **테스트 소스 패키지 미러링** — 예고: log_41 / 종류: 코드 적용 (프로덕션은 기능별인데 테스트는 아직 `service/`·`domain/` 레이어별 → 미러링)
 
 ### Saga / 분산
 - [ ] **Saga 조율 방식 — choreography vs orchestration** — 예고: log_31 / 종류: 흐름 파악 (장들을 누가 지휘하나)
@@ -49,6 +56,7 @@
 
 ## ✅ 닫힘 (재방문 완료)
 
+- [x] **PENDING 만료 reaper** — 예고 log_37 → 닫힘: `ExpiredOrderWorker`(커밋 d564102a), `created_at` TTL + @Scheduled로 미결제 PENDING 정리 (단, *Order 기준* 스캔이라 승격 PENDING은 못 줍는 한계 → 위 hot 항목 조각2로 이어짐)
 - [x] **갭락** — 예고 log_13 → 학습 log_17·26
 - [x] **낙관적 락** — 예고 log_06(개념) → 학습 log_08(JDBC 구현)
 - [x] **동시성 race + DB unique index 도입 여부** — 예고 log_25 → 닫힘: waiting UNIQUE 백스톱 + 예약 행 락 직렬화로 정리(roomescape-waiting 리뷰)
@@ -56,3 +64,4 @@
 - [x] **Saga 패턴 — 보상 트랜잭션** — 예고 log_30 → 학습 log_31 (흐름 파악: 보상=롤백 아닌 "반대 행동 새 장", rollback vs compensation 구분까지)
 - [x] **클라이언트 값 못 믿음 (위조 가능)** — 예고 log_32(JWT Payload) → 재방문 log_35: 토스 amount 검증에 그대로 적용(같은 뼈대 = 서버 secret+진짜값으로 검증)
 - [x] **confirm 멱등성 (재시도 안전성)** — 예고 log_31(saga 재시도)·log_35 → 학습 log_36: 응답 유실 딜레마 → paymentKey 중복감지 vs Idempotency-Key, 키는 유실에도 살아남게 클라이언트가 발급
+- [x] **예약/결제 API 분리 (Q1)** — 예고 log_42 → 닫힘 log_43 (커밋 3938cddc): `POST /reservations`=예약만, `POST /payments/ready`=주문 생성+준비정보. 주문이 "결제 시작" 시점 생성. **부수로**: 인증 default-deny 전환(887f4e73), 중복주문 3중 방어(멱등 재방문 — getOrCreate+cancelPending 멱등+UNIQUE(reservation_id), 0be9e538). 토스 위젯 수동검증 통과(주문 1건).
