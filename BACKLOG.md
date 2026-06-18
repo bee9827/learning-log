@@ -23,6 +23,7 @@
 ### 결제 — 단독
 - [ ] **멱등성 키의 수명·범위 — 토스는 캐시를 얼마나/언제까지** — 예고: log_36 / 종류: 흐름 파악 (키 만료·재사용 충돌·캐시 보관 윈도우)
 - [ ] **at-least-once vs exactly-once — 멱등성이 왜 "exactly-once 효과"를 만드나** — 예고: log_36 / 종류: 흐름 파악 (이론적 바닥)
+- [ ] **reaper TTL 다이얼 분리 — 결제팝업(30분) ≠ 승격 유예** — 예고: log_43 / 종류: 코드 적용 (승격은 알림+복귀 소비시간 필요 → 더 긴/별도 유예. 현재 둘 다 같은 ttlMinutes 사용. 알림 채널 딸려와 큰 작업이라 보류)
 
 ### 구조 / 테스트
 - [ ] **reservation↔waiting 사이클 끊기** — 예고: log_40·42 / 종류: 코드 적용 (마지막 남은 사이클. payment↔reservation은 log_42에서 끊음). 단일 edge `ReservationCreator→WaitingDao`(새치기 방지 읽기)를 DIP(reservation에 포트 정의 → waiting이 구현)로 역전.
