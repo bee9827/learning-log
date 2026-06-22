@@ -19,7 +19,7 @@
 |---|---|
 | 01 ~ 13 | spring-roomescape-member |
 | 14 ~ 22 | spring-roomescape-auth |
-| 23 ~ 48 | spring-roomescape-waiting |
+| 23 ~ 49 | spring-roomescape-waiting |
 
 > 파일명: `NN_핵심키워드.md` (번호 앞 → 시간순 정렬·상호참조 안정, 키워드 → 그래프 가독성)
 
@@ -75,3 +75,4 @@
 | 46 | reconciliation — 불명확을 조회로 수렴(아웃박스 폴링) + 멱등을 락 아닌 낙관 가드로 |
 | 47 | 앱 가드는 동시성에 못 닫힌다 — 상태 CAS(낙관)로 직렬화 |
 | 48 | Saga 보상 — 롤백 못 하는 외부 행동을 반대 행동으로, 아웃박스 한 겹 더 |
+| 49 | HTTP 클라이언트 '자동 동작' 함정(401 스트림 소모·429 이중 재시도 끄기) + Rate Limit 토큰버킷 세 방향(인바운드·아웃바운드 reactive/proactive) |
