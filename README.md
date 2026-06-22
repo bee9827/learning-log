@@ -19,7 +19,8 @@
 |---|---|
 | 01 ~ 13 | spring-roomescape-member |
 | 14 ~ 22 | spring-roomescape-auth |
-| 23 ~ 49 | spring-roomescape-waiting |
+| 23 ~ 34 | spring-roomescape-waiting |
+| 35 ~ 49 | spring-roomescape-waiting — 결제(Toss) 연동 |
 
 > 파일명: `NN_핵심키워드.md` (번호 앞 → 시간순 정렬·상호참조 안정, 키워드 → 그래프 가독성)
 
