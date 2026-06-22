@@ -20,7 +20,7 @@
 | 01 ~ 13 | spring-roomescape-member |
 | 14 ~ 22 | spring-roomescape-auth |
 | 23 ~ 34 | spring-roomescape-waiting |
-| 35 ~ 49 | spring-roomescape-waiting — 결제(Toss) 연동 |
+| 35 ~ 50 | spring-roomescape-waiting — 결제(Toss) 연동 |
 
 > 파일명: `NN_핵심키워드.md` (번호 앞 → 시간순 정렬·상호참조 안정, 키워드 → 그래프 가독성)
 
@@ -77,3 +77,4 @@
 | 47 | 앱 가드는 동시성에 못 닫힌다 — 상태 CAS(낙관)로 직렬화 |
 | 48 | Saga 보상 — 롤백 못 하는 외부 행동을 반대 행동으로, 아웃박스 한 겹 더 |
 | 49 | HTTP 클라이언트 '자동 동작' 함정(401 스트림 소모·429 이중 재시도 끄기) + Rate Limit 토큰버킷 세 방향(인바운드·아웃바운드 reactive/proactive) |
+| 50 | Rate Limit 버킷 두 손잡이(capacity·refill) + 인바운드 ≠ 아웃바운드 독립 한도(워커·재시도가 인바운드를 우회) |
