@@ -80,3 +80,4 @@
 | 49 | HTTP 클라이언트 '자동 동작' 함정(401 스트림 소모·429 이중 재시도 끄기) + Rate Limit 토큰버킷 세 방향(인바운드·아웃바운드 reactive/proactive) |
 | 50 | Rate Limit 버킷 두 손잡이(capacity·refill) + 인바운드 ≠ 아웃바운드 독립 한도(워커·재시도가 인바운드를 우회) |
 | 51 | JVM 실행 엔진(바이트코드·JIT·핫스팟·추론최적화) / GC(도달성·mark&sweep·GC root·STW·lost object·write barrier) — log_20 도달성 심화 재방문, off-arc |
+| 52 | 거부 정책 = 대기시간×동시대기자수 — 아웃바운드를 bounded wait로 전환(tryConsume(maxWait)) + synchronized/check-then-act 첫 대면 |
