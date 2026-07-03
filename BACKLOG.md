@@ -75,7 +75,15 @@
 - [ ] **세션 공유 — sticky session vs 중앙 저장소(Redis)** — 예고: log_32 / 종류: 흐름 파악 (세션의 확장성 비용 줄이기)
 - [ ] **쿠키 보안 — HttpOnly/Secure/SameSite, 세션 하이재킹 방어** — 예고: log_32 / 종류: 흐름 파악
 
+### JVM / 런타임 (신규 클러스터 — log_51 off-arc 탐험에서 열림)
+- [ ] **세대 구분 GC — Minor/Major, Young/Old** — 예고: log_20·51 / 종류: 흐름 파악 (왜 힙을 세대로 나누나 = weak generational hypothesis. log_20이 예고했으나 오늘 미답, STW 트레이드오프에서 이름만 스침)
+- [ ] **계층형 컴파일 C1/C2** — 예고: log_51 / 종류: 흐름 파악 (JIT 안에 컴파일러가 여러 단계인 이유 — 왜 한 번에 최고 수준으로 안 하나)
+- [ ] **write barrier 구현 깊이** — 예고: log_51 / 종류: 흐름 파악 (SATB vs incremental update 선택 기준, G1/ZGC가 실제로 쓰는 방식)
+- [ ] **Java 21 LTS의 JVM 현황 — 현대 GC가 STW를 어떻게 거의 없앴나** — 예고: log_51(세션 끝, 학습자 궁금증) / 종류: 흐름 파악 (오늘 STW·write barrier·동시 GC의 *현재 실제 상태*: ZGC·Generational ZGC·Shenandoah. 곁다리로 가상 스레드[Loom])
+
 ## ✅ 닫힘 (재방문 완료)
+
+- [x] **Java GC 동작 방식 심화 (GC 루트·흐름)** — 예고 log_20 → 학습 log_51: 도달성 3줄에서 mark&sweep(루트 정방향 vs 역참조)·GC root·floating garbage·트리거=메모리압력·STW(앱을 멈춤)·lost-object·write barrier(incremental/SATB)까지 심화. *세대 구분(Minor/Major) 부분은 미답 → cold 'JVM/런타임'으로 이월.*
 
 - [x] **PENDING 만료 reaper** — 예고 log_37 → 닫힘: `ExpiredOrderWorker`(커밋 d564102a), `created_at` TTL + @Scheduled로 미결제 PENDING 정리 (단, *Order 기준* 스캔이라 승격 PENDING은 못 줍는 한계 → 위 hot 항목 조각2로 이어짐)
 - [x] **갭락** — 예고 log_13 → 학습 log_17·26
