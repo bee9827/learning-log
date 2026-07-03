@@ -81,3 +81,6 @@
 | 50 | Rate Limit 버킷 두 손잡이(capacity·refill) + 인바운드 ≠ 아웃바운드 독립 한도(워커·재시도가 인바운드를 우회) |
 | 51 | JVM 실행 엔진(바이트코드·JIT·핫스팟·추론최적화) / GC(도달성·mark&sweep·GC root·STW·lost object·write barrier) — log_20 도달성 심화 재방문, off-arc |
 | 52 | 거부 정책 = 대기시간×동시대기자수 — 아웃바운드를 bounded wait로 전환(tryConsume(maxWait)) + synchronized/check-then-act 첫 대면 |
+| 53 | 재시도 안전성 = "토스가 어디까지 아나" 스펙트럼(거부→429→timeout→200) + 429 발화자 둘 + 멱등키=재시도를 특수케이스 아니게 — #4를 인출만으로 닫음 |
+| 54 | 서킷 브레이커 3상태 재발명(죽은 토스→open/half-open/트립=실패율×최소표본) — RL=양 vs CB=건강, **arc 'step3 Rate Limit' 닫힘** |
+| 55 | CAS 루프 = 틈의 무해화(낡으면 거부) + 2필드는 불변객체·AtomicReference + 경합 낮으면 sync가 이긴다(락 가격표 차이) — 새 arc '동시성 손끝 증명' 1칸 |
