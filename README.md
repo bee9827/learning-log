@@ -84,3 +84,4 @@
 | 53 | 재시도 안전성 = "토스가 어디까지 아나" 스펙트럼(거부→429→timeout→200) + 429 발화자 둘 + 멱등키=재시도를 특수케이스 아니게 — #4를 인출만으로 닫음 |
 | 54 | 서킷 브레이커 3상태 재발명(죽은 토스→open/half-open/트립=실패율×최소표본) — RL=양 vs CB=건강, **arc 'step3 Rate Limit' 닫힘** |
 | 55 | CAS 루프 = 틈의 무해화(낡으면 거부) + 2필드는 불변객체·AtomicReference + 경합 낮으면 sync가 이긴다(락 가격표 차이) — 새 arc '동시성 손끝 증명' 1칸 |
+| 56 | 진짜 경합 증명(Testcontainers MySQL) — gap 락은 입장을 직렬화 못 하고 INSERT만 막는다(데드락 해부·수정) + FOR UPDATE는 읽은 행 전부(JOIN 포함) + TIMESTAMP 2038, **arc 동시성 손끝 증명 닫힘** |
