@@ -31,7 +31,7 @@
 
 - [x] **불명확(NEEDS_CHECK) 자동 reconciliation** — ✅ 완료 log_46. 토스 `findStatus` 조회로 DONE→확정 / 아니면→실패 수렴, `@Scheduled` 워커(아웃박스 패턴), 멱등은 낙관 상태가드. 257 그린.
 - [x] **상태 CAS 직렬화 — 가드는 동시성에 못 닫힌다** ✅ 완료 log_47. status를 version 삼은 낙관 CAS(`UPDATE WHERE status=expected`, 0행=짐), 네 수렴지점(confirm/recheck/reconcile/abandon) 게이트. 258 그린. (이 칸은 *동시성/직렬화* 갈래[#28 가족]였고, 후속 '멀티스레드 증명'은 보상 arc와 결이 달라 cold로 분리 — log_47 "바꿀 것" 적용.)
-- [ ] **재시도 정책 — 워커 재시도 횟수·백오프·언제 포기→보상** — 예고 log_46(§1)·48(§5)·#36 / 종류: 흐름 파악→코드 적용 (외부 '모름'은 반환타입으로 못 갈려 바운드 필요. #28 아웃박스 재시도와 한 묶음 — **보상으로 넘어가는 경첩**)
+- [x] ~~재시도 정책 — 워커 재시도 횟수·백오프·언제 포기→보상~~ → **arc '재시도 정책'으로 승격되어 닫힘** (log_58, 위 섹션 참조)
 - [x] **결제 보상(Saga) — 예약 확보 실패 시 자동 환불** ✅ 완료 (커밋 a87e13ae, 개념·설계 log_48). 승인 후 예약 확정이 영구 실패(BusinessRule/EntityNotFound)면 예외를 잡아 `NEEDS_REFUND` 커밋(증거 생존) → `PaymentRefundWorker`가 토스 `cancel`(멱등키)로 환불 → CAS로 `FAILED` 수렴(아웃박스 한 겹 더). reconcile의 무한 재시도 루프도 닫음. 263 그린.
   > **주의**: "트랜잭션 밖 외부호출 분리"는 *우회*로 해결 — 토스 호출은 여전히 `@Transactional` 안이고, 대신 예외를 잡아 `NEEDS_REFUND`를 *커밋*(롤백 방지)했다. 설계의 NEEDS_CHECK 재사용 대신 *전용 상태 `NEEDS_REFUND`* 로 분리(의미가 '모름'과 달라서). 재시도 바운드는 미구현(아래 '재시도 정책').
 
