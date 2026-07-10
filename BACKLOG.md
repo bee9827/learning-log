@@ -69,9 +69,12 @@
 - [ ] **reaper TTL 다이얼 분리 — 결제팝업(30분) ≠ 승격 유예** — 예고: log_43 / 종류: 코드 적용 (승격은 알림+복귀 소비시간 필요 → 더 긴/별도 유예. 현재 둘 다 같은 ttlMinutes 사용. 알림 채널 딸려와 큰 작업이라 보류)
 
 ### 구조 / 테스트
-- [ ] **reservation↔waiting 사이클 끊기** — 예고: log_40·42 / 종류: 코드 적용 (마지막 남은 사이클. payment↔reservation은 log_42에서 끊음). 단일 edge `ReservationCreator→WaitingDao`(새치기 방지 읽기)를 DIP(reservation에 포트 정의 → waiting이 구현)로 역전.
-- [ ] **ArchUnit 가드 코드 적용** — 예고: log_38·41 / 종류: 코드 적용 (*왜·정체*는 log_41에서 닫음). 규칙 2종: ①패키지 사이클 금지 ②ACL 경계(토스 타입이 payment.toss 밖으로 못 나감). 이제 사이클이 reservation↔waiting 1건뿐이라 "신규 사이클 금지" 박기 좋은 시점(그 1건은 베이스라인 예외 후 끊기).
-- [ ] **테스트 소스 패키지 미러링** — 예고: log_41 / 종류: 코드 적용 (프로덕션은 기능별인데 테스트는 아직 `service/`·`domain/` 레이어별 → 미러링)
+- [x] **reservation↔waiting 사이클 끊기** — ✅ 닫힘 (커밋 48e62568, 2026-07-10). DIP로 역전(reservation이 `WaitingQueryPort` 정의 → waiting이 `WaitingQueryAdapter`로 구현). **덤: 숨은 두 번째 사이클 reservation↔promotion 발견·끊음**(enqueue를 `PromotionEnqueuePort`로 역전) — "왜 promotion을 이렇게 설계했지?" 호기심이 파냄. 핵심 개념: **outbox는 시간적 결합만 끊고 구조적(import) 사이클은 못 끊는다 → DIP가 구조를 뒤집는다**(런타임 호출 방향은 유지). `createFromPromotion`은 `Reservation`을 받게 바꿔 promote() 호출을 caller로 이동.
+- [x] **ArchUnit 가드 코드 적용** — ✅ 닫힘 (커밋 11c46d74, 2026-07-10). `archunit-junit5` + 규칙 2종. **대발견: 전역 `slices().beFreeOfCycles()`가 64개 사이클로 실패**(auth·common·theme·time 깊게 얽힘) — BACKLOG "1건뿐"이 완전 오판, log_41 "가드가 왜 필요한가"의 실증(사람 1개 vs 기계 64개). 전역 무순환은 별도 arc로 미루고, **타겟 규칙**(reservation은 waiting·promotion 의존 금지)으로 오늘 작업만 잠금 + ACL(토스는 payment.toss에 가둠) 통과.
+- [ ] **테스트 소스 패키지 미러링** — 예고: log_41 / 종류: 코드 적용 (프로덕션은 기능별인데 테스트는 아직 `service/`·`domain/` 레이어별 → 미러링). *덤 관찰(2026-07-10): 슬라이스 테스트 @Import가 빈을 손으로 나열해 새 빈(어댑터) 추가 시 3곳을 다 고쳐야 했다 — 이 마찰이 미러링/구조 재고의 동기.*
+
+### 🧊 코드베이스 전역 무순환 (신규 arc — log_41 가드가 64개 사이클 폭로, 2026-07-10)
+- [ ] **64개 슬라이스 사이클 해소 or FreezingArchUnit** — 종류: 코드 적용 (큰 arc). 옵션: ① `FreezingArchRule.freeze(slices().beFreeOfCycles())`로 현재 64개를 베이스라인 동결 후 신규만 차단 ② common·auth 등 핫스팟부터 점진 해소. common↔theme/time, auth↔member/reservation 등 유틸·인증 패키지가 사이클 허브로 보임.
 
 ### Saga / 분산
 - [ ] **Saga 조율 방식 — choreography vs orchestration** — 예고: log_31 / 종류: 흐름 파악 (장들을 누가 지휘하나)
@@ -99,7 +102,7 @@
 - [ ] **쿠키 보안 — HttpOnly/Secure/SameSite, 세션 하이재킹 방어** — 예고: log_32 / 종류: 흐름 파악
 
 ### 네트워크 (신규 클러스터 — log_60 off-arc 탐험에서 열림)
-- [ ] **디피-헬만(DH) 키 교환** — 예고: log_60 / 종류: 흐름 파악 (세션 키를 아예 보내지 않고 양쪽이 각자 계산해 같은 값에 도달 = forward secrecy. 현대 TLS의 실제 방식. log_60은 "상자에 담아 공개키로 잠가 보냄" 모델까지만)
+- [x] **디피-헬만(DH) 키 교환** — ✅ 닫힘 log_60(당일 재방문). 아무도 세션키를 안 보내고 양쪽이 `g^(ab) mod p`에 독립 도달. 색깔 비유→한계(역추론 가능) 학습자가 지적→실제는 mod 거듭제곱(이산로그=지름길 없음). **forward secrecy**: `a·b` 버려서 나중에 장기키 훔쳐도 과거 세션 못 깸(RSA 상자식 대비 우위). ECDHE=현대 TLS.
 - [ ] **DNS 내부 동작** — 예고: log_60 / 종류: 흐름 파악 (recursive resolver·캐싱·계층 root→TLD→authoritative)
 - [ ] **HTTP 버전 — 1.1 vs 2 vs 3(QUIC)** — 예고: log_60 / 종류: 흐름 파악 (연결·멀티플렉싱·head-of-line 차이)
 
