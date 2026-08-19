@@ -93,7 +93,7 @@
 | 59 | 서킷 브레이커 적용 — 회로 관점(닫혀야 흐른다)·장부 세 칸은 접촉 증거·CB open↔DEAD 충돌 해소(환경 실패 미계상) + 데드락 패자 @Retry(tx 바깥 증명) + **구현 전 합의 게이트, arc 재시도 정책 닫힘** |
 | 60 | URL 한 줄부터 화면까지 — DNS·포트(80/443 기본·8080은 Tomcat이 연 문) / TCP 3-handshake=순서번호 맞추기·ISN 랜덤(주입 방어+유령 패킷) / **Tomcat 두 책임**(연결·번역 + 서블릿 컨테이너), WS vs WAS / **TLS 신뢰 사슬**(비대칭키로 세션키 교환·MITM·인증서+CA 서명[JWT Signature 재사용]·root는 OS/브라우저 내장). 일반 CS(네트워크), 미러 제외 |
 | 61 | 패키지 사이클 끊기(DIP) + ArchUnit 가드 — **outbox는 시간적 결합·DIP는 구조적(import) 결합을 끊는다**(런타임 호출은 유지) / 코드 옮기기 ≠ 의존 뒤집기 / 사이클은 클래스 아닌 패키지 단위(모듈러 모놀리스=MSA 전제) / 호기심이 숨은 사이클(reservation↔promotion) 파냄 / **가드가 64개 사이클 폭로**(사람 1 vs 기계 64 = log_41 실증) → 타겟 규칙으로 잠금 + ACL 통과 |
-| 62 | Testcontainers 하나만 띄우기 — Gradle test worker JVM·ClassLoader·JUnit 인스턴스·Spring Context Cache의 생명주기 분리 / Context별 `@Bean` 5개 → worker JVM의 `static` 1개 / `@DynamicPropertySource`로 여러 Context를 같은 랜덤 포트 MySQL에 연결 / 4분 20초 → 53.73초 |
+| 62 | Testcontainers 하나만 띄우기 — Gradle test worker JVM·ClassLoader·JUnit 인스턴스·Spring Context Cache의 생명주기 분리 / Context별 `@Bean` 5개 → worker JVM의 `static` 1개 / `@DynamicPropertySource`로 여러 Context를 같은 랜덤 포트 MySQL에 연결 / 통합 테스트는 `@Sql` 정리·Controller는 `@WebMvcTest` / testcase 6.564초와 suite 43.718초의 측정 경계 |
 
 > 다음 새 학습 로그는 **63**부터. (종합·정리 로그는 아래 별도 트랙 — 번호 시퀀스를 쓰지 않는다.)
 
