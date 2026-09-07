@@ -25,6 +25,7 @@
 | 60 | 일반 CS (네트워크) — 프로젝트 외, 미러 제외 |
 | 61 | spring-roomescape-waiting — 패키지 사이클 끊기·ArchUnit 가드 (미러 O) |
 | 62 | 2026-Mapmory — Testcontainers worker JVM 공유와 테스트 성능 개선 |
+| 63 | 일반 CS (운영체제/가상 메모리) — 프로젝트 외, 미러 제외 |
 
 > 파일명: `NN_핵심키워드.md` (번호 앞 → 시간순 정렬·상호참조 안정, 키워드 → 그래프 가독성)
 
@@ -94,8 +95,9 @@
 | 60 | URL 한 줄부터 화면까지 — DNS·포트(80/443 기본·8080은 Tomcat이 연 문) / TCP 3-handshake=순서번호 맞추기·ISN 랜덤(주입 방어+유령 패킷) / **Tomcat 두 책임**(연결·번역 + 서블릿 컨테이너), WS vs WAS / **TLS 신뢰 사슬**(비대칭키로 세션키 교환·MITM·인증서+CA 서명[JWT Signature 재사용]·root는 OS/브라우저 내장). 일반 CS(네트워크), 미러 제외 |
 | 61 | 패키지 사이클 끊기(DIP) + ArchUnit 가드 — **outbox는 시간적 결합·DIP는 구조적(import) 결합을 끊는다**(런타임 호출은 유지) / 코드 옮기기 ≠ 의존 뒤집기 / 사이클은 클래스 아닌 패키지 단위(모듈러 모놀리스=MSA 전제) / 호기심이 숨은 사이클(reservation↔promotion) 파냄 / **가드가 64개 사이클 폭로**(사람 1 vs 기계 64 = log_41 실증) → 타겟 규칙으로 잠금 + ACL 통과 |
 | 62 | Testcontainers 하나만 띄우기 — Gradle test worker JVM·ClassLoader·JUnit 인스턴스·Spring Context Cache의 생명주기 분리 / Context별 `@Bean` 5개 → worker JVM의 `static` 1개 / `@DynamicPropertySource`로 여러 Context를 같은 랜덤 포트 MySQL에 연결 / 통합 테스트는 `@Sql` 정리·Controller는 `@WebMvcTest` / testcase 6.564초와 suite 43.718초의 측정 경계 |
+| 63 | 가상주소에서 COW까지 — 프로그램→프로세스→가상 주소 공간 / 페이지·프레임·PTE / MMU가 변환·권한 검사, TLB는 번역 캐시 / 같은 가상주소를 주소 공간 ID로 구분 / COW는 쓰기 순간 한 페이지만 복사 / 페이지 크기는 내부 단편화↔PTE 수의 저울. 일반 CS(운영체제/가상 메모리), 미러 제외 |
 
-> 다음 새 학습 로그는 **63**부터. (종합·정리 로그는 아래 별도 트랙 — 번호 시퀀스를 쓰지 않는다.)
+> 다음 새 학습 로그는 **64**부터. (종합·정리 로그는 아래 별도 트랙 — 번호 시퀀스를 쓰지 않는다.)
 
 ## 종합·정리 로그 (번호 시퀀스 밖)
 
