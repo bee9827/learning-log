@@ -100,6 +100,7 @@
 - [x] **C의 책임 경계 — DB 제약(FK·UNIQUE·CHECK) vs 애플리케이션 비즈니스 규칙** — ✅ 닫힘 종합-인출([DB 카드](Level2_정리/DB트랜잭션.md)·[모델링 카드](Level2_정리/복잡한모델링.md)의 DB 다리): 일관성은 UNIQUE·CAS가 보장, **앱 로직은 의도 표현·친절한 거절**(역할 분담·대체 불가). 규칙이 도메인에 못 들어가 Service로 밀리는 지점 = DB 칸 출발점.
 
 ### 인증 / 세션
+- [x] **Cookie와 JSESSIONID 발급 코드 적용** — ✅ 닫힘 log_68. JSESSIONID는 로그인 증명이 아니라 세션 식별자 / 미션은 세션 저장소 전 단계라 요청에 없으면 UUID를 발급 / 실제 Servlet은 세션 생성 시 발급 / Cookie 파싱·Optional·빈 객체와 Processor 발급 정책을 코드로 연결. 다음 SessionManager·세션 고정 방어는 log_68 본문 씨앗으로만 보존.
 - [x] **refresh token + 짧은 만료 access token** — ✅ 닫힘 종합_2부(2026-07-09, [인증 카드](Level2_정리/인증세션.md) 하이브리드 절). 짧은 JWT(빈번한 검증) + refresh token(**서버 DB 저장이라 탈취돼도 지워서 죽임**), JWT 만료 = 피해 시간 다이얼. 낙관+비관 락 혼합과 같은 모양.
 - [ ] **세션 공유 — sticky session vs 중앙 저장소(Redis)** — 예고: log_32 / 종류: 흐름 파악 (세션의 확장성 비용 줄이기)
 - [ ] **쿠키 보안 — HttpOnly/Secure/SameSite, 세션 하이재킹 방어** — 예고: log_32 / 종류: 흐름 파악
