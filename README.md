@@ -29,6 +29,12 @@
 | 62 | 2026-Mapmory — Testcontainers worker JVM 공유와 테스트 성능 개선 |
 | 63 ~ 67 | 일반 CS (컴퓨터 구조에서 출발한 실행 흐름·가상 메모리·스레드 실행 상태) — 프로젝트 외, 미러 제외 |
 | 68 | java-http — Cookie와 JSESSIONID 발급, 세션 식별자와 로그인 상태 구분 |
+| 69 ~ 70 | java-http — Coyote·Catalina·Servlet 경계와 어노테이션 기반 라우트 등록 |
+| 71 | 일반 CS (JVM/동시성) — Thread 미션 코드와 연결 |
+| 72 | 일반 CS (동시성/비동기) — 호출·반환·작업 완료의 순서 |
+| 73 | java-mvc — Stream 내부 반복·순수 변환·병렬 분할과 HandlerMapping 등록 경계 (미러 O) |
+| 74 | 일반 CS (네트워크/JVM 동시성) — 소켓 읽기·가상 스레드 재개 (미러 제외) |
+| 75 ~ 76 | 일반 CS (CPU 캐시·Java 가시성) — 프로젝트 외, 미러 제외 |
 
 > 파일명: `NN_핵심키워드.md` (번호 앞 → 시간순 정렬·상호참조 안정, 키워드 → 그래프 가독성)
 
@@ -104,8 +110,16 @@
 | 66 | CPU 작동 원리 — PC·MAR·MBR·IR의 인출 흐름 / 제어장치 해독·ALU 실행 / opcode·주소 지정 방식은 기계어에 이미 인코딩 / 함수 복귀 주소 / 인터럽트 번호→벡터 테이블→핸들러. 일반 CS(컴퓨터 구조), 미러 제외 |
 | 67 | 스레드 실행 상태 — 프로세스 공유 자원↔스레드별 PC·SP·스택 / 스택 전체를 복사하지 않고 PC·SP·플래그·범용 레지스터 등 실행 문맥 저장·복원 / 플랫폼 스레드 1:1과 풀 재사용 / 가상 스레드·캐리어의 I/O 대기 분리. 일반 CS(운영체제/JVM 동시성), 미러 제외 |
 | 68 | Cookie와 JSESSIONID 코드 적용 — 세션 식별자 ≠ 로그인 상태 / 미션의 선발급 규칙과 Servlet 세션 생성 시점 구분 / Cookie 파싱·Optional·빈 객체 / Processor 발급 정책·Response Set-Cookie / 21개 테스트 통과 |
+| 69 | Coyote·Catalina·Servlet 요청 표현의 경계 — 낮은 수준 HTTP 요청 → Servlet API 래퍼 → 애플리케이션, Step3 의존성 리뷰 재방문 |
+| 70 | 로그인 컨트롤러 응집도 리뷰 → @Controller·@RequestMapping의 발견·등록·호출 / RouteKey → RequestHandler 람다가 객체+Method 포착 / Spring과 현재 구현 비교 |
+| 71 | JVM 메모리·요청 스레드·공유 상태 경쟁 / UserServlet의 검사-추가 간섭·스냅샷 반환 / CountDownLatch로 결정적 재현 설계 |
+| 72 | 동기·비동기 = 시작 호출과 완료 처리의 관계(대표 시간선: 호출→반환→완료) / 블로킹·논블로킹 = 호출자의 대기 / `tryConsume()`·`Future.get()`·`Object.wait()`에 적용. 일반 CS(동시성/비동기), 미러 제외 |
+| 73 | Java Stream — 내부 반복·지연 실행 / uri 포착 람다의 순수 변환과 put 등록의 상태 변경 / Spliterator 분할·ForkJoinPool / for문 선택. java-mvc 미러 O |
+| 74 | 소켓 읽기→가상 스레드 중단·캐리어 해제→OS 수신·JDK 재제출→재개 / read·readNBytes·SO_TIMEOUT·TCP 바이트 스트림. 일반 CS, 미러 제외 |
+| 75 | CPU 캐시 — 캐시 라인·공간/시간 지역성·L1/L2/L3·write-back / TLB는 번역 캐시, 데이터 캐시는 내용물 / TLB 미스·캐시 미스·페이지 폴트 분리. 일반 CS(컴퓨터 구조), 미러 제외 |
+| 76 | Java 가시성 — 코어별 캐시와 스레드별 스택·레지스터 구분 / 캐시 일관성만으로 재읽기·순서 보장 불가 / volatile happens-before와 CAS의 역할 / 컨텍스트 스위치의 레지스터 저장. 일반 CS(동시성), 미러 제외 |
 
-> 다음 새 학습 로그는 **69**부터. (종합·정리 로그는 아래 별도 트랙 — 번호 시퀀스를 쓰지 않는다.)
+> 다음 새 학습 로그는 **77**부터. (종합·정리 로그는 아래 별도 트랙 — 번호 시퀀스를 쓰지 않는다.)
 
 ## 종합·정리 로그 (번호 시퀀스 밖)
 
