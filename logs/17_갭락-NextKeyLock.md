@@ -96,3 +96,50 @@
    → 맥락: 읽은 값 기반 계산 중 다른 트랜잭션의 수정을 막아야 하는 경우
    → 종류: 실전 판단 (개념은 알았으니 언제 쓸지 판단하는 단계로)
 ```
+
+## 6. 직접 확인 (재현 기록)
+
+### 계기
+
+다른 크루 PR([woowacourse/spring-roomescape-waiting#441](https://github.com/woowacourse/spring-roomescape-waiting/pull/441), 2026-06-06 리뷰)에서 "`SELECT … WHERE id = ? FOR UPDATE`는 매칭 row가 0개면 락이 잡히지 않는다"는 설명을 봤다. 나는 InnoDB의 Repeatable Read라면 빈 구간에 갭락이 걸려 INSERT가 막힐 거라고 생각했고, 코치님은 삽입이 될 거라고 봐서 의견이 갈렸다. 코치님 권유로 직접 실험해 확인했다.
+
+당시 실험 기록이 남아 있지 않아, 2026-10-04에 같은 조건으로 다시 재현해 결과를 남긴다.
+
+### 환경과 절차
+
+- MySQL 8.0.46, InnoDB, `innodb_lock_wait_timeout = 3`
+- 테이블: `slot(id INT PRIMARY KEY)`, 데이터 id 10, 20, 30
+- T1이 아래 조회를 실행하고 커밋하지 않은 상태에서, T2가 INSERT를 시도한다. 락은 `performance_schema.data_locks`로 확인한다.
+
+```sql
+-- T1
+START TRANSACTION;
+SELECT * FROM slot WHERE id = 15 FOR UPDATE;          -- 0행
+-- (또는) SELECT * FROM slot WHERE id BETWEEN 11 AND 19 FOR UPDATE;  -- 0행
+
+-- T2
+START TRANSACTION;
+INSERT INTO slot VALUES (15, 'x');   -- 같은 자리
+INSERT INTO slot VALUES (17, 'x');   -- 같은 갭 (10, 20)
+INSERT INTO slot VALUES (25, 'x');   -- 다른 갭 (20, 30)
+```
+
+### 결과
+
+| 격리 수준 | T1 조회 (0행) | T1이 잡은 락 | T2 INSERT 15 | T2 INSERT 17 | T2 INSERT 25 |
+|---|---|---|---|---|---|
+| REPEATABLE READ | `id = 15` | `X,GAP` on 20 | 대기 → 1205 timeout | 대기 → 1205 timeout | 성공 |
+| REPEATABLE READ | `id BETWEEN 11 AND 19` | `X,GAP` on 20 | 대기 → 1205 timeout | 대기 → 1205 timeout | 성공 |
+| READ COMMITTED | `id = 15` | 테이블 IX만 | 성공 | 성공 | 성공 |
+| READ COMMITTED | `id BETWEEN 11 AND 19` | 테이블 IX만 | 성공 | 성공 | 성공 |
+
+추가로, 두 트랜잭션이 각각 `id = 15 FOR UPDATE`(0행)를 실행한 뒤 둘 다 `INSERT id=15`를 하면:
+
+- REPEATABLE READ: 한쪽이 **1213 Deadlock**으로 롤백되고 다른 쪽은 성공. 갭락끼리는 충돌하지 않아 둘 다 잡히지만, 각자의 INSERT(Insert Intention Lock)가 상대 갭락에 막히기 때문이다.
+- READ COMMITTED: 갭락이 없어 먼저 INSERT한 쪽이 성공하고, 나중 쪽은 중복 키 확인 때문에 대기하다 timeout.
+
+### 결론
+
+- "0행이면 락이 안 잡힌다"는 **READ COMMITTED에서만** 맞다. MySQL 기본값인 REPEATABLE READ에서는 0행이어도 다음 레코드(20) 앞 갭에 `X,GAP` 락이 걸려 그 갭으로의 INSERT가 막힌다.
+- 공식 문서: [MySQL 8.4 InnoDB Locking](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking.html) — 유니크 인덱스로 유일한 행을 찾을 때 갭락이 필요 없다는 설명은 행을 **찾았을 때**에만 해당한다.
+- 같은 빈 갭에 FOR UPDATE를 건 두 트랜잭션이 모두 INSERT하면 데드락이 난다. 이 구조가 이후 [#56](56_진짜경합증명-gap락은입장을직렬화못한다-FORUPDATE는읽은행전부.md)에서 실제 경합으로 재현한 데드락과 같다.
